@@ -5,7 +5,7 @@ from dash import dcc
 from dash import html
 
 import pandas as pd
-# import plotly.express as px
+import collections
 
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
@@ -88,6 +88,9 @@ def add_columns(n_clicks, value, existing_columns):
             'name': value, 'id': value,
             'renamable': True, 'deletable': True
         })
+    # list_of_columns=[]
+    # for i in range(len(existing_columns)):
+    #     list_of_columns.append(existing_columns[i]['id'])
     return existing_columns
 
 
@@ -110,19 +113,21 @@ def add_row(n_clicks, rows, columns):
     [Input('save_to_postgres', 'n_clicks'),
      Input("interval", "n_intervals")],
     [State('our-table', 'data'),
-     State('store', 'data')],
+     State('store', 'data'),
+     State('our-table', 'columns')],
     prevent_initial_call=True)
-def df_to_csv(n_clicks, n_intervals, dataset, s):
+def df_to_sql(n_clicks, n_intervals, dataset, s,columns):
     output = html.Plaintext("The data has been saved to your PostgreSQL database.",
                             style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
     no_output = html.Plaintext("", style={'margin': "0px"})
-
     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-
     if input_triggered == "save_to_postgres":
-        s = 6
+        list_of_columns=[]
+        for i in range(len(columns)):
+            list_of_columns.append(columns[i]['id'])
         pg = pd.DataFrame(dataset)
-        pg.to_sql("phonebook", con=db.engine, if_exists='replace', index=False)
+        pg[list_of_columns].to_sql("phonebook", con=db.engine, if_exists='replace', index=False)
+        s = 6
         return output, s
     elif input_triggered == 'interval' and s > 0:
         s = s - 1
