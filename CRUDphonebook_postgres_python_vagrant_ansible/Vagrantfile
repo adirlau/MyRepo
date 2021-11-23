@@ -1,0 +1,33 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt install -y python3-pip
+    pip3 install --upgrade pip
+    apt-get install -y postgresql-client
+  SHELL
+  config.vm.define "db" do |db|
+    db.vm.hostname = 'db'
+    db.vm.network :forwarded_port, guest: 5432, host: 5433, host_ip: "127.0.0.1"
+    db.vm.network :private_network, ip: "192.168.60.70"
+    db.vm.provision "ansible" do |ansible|
+        ansible.playbook = "db_playbook.yml"
+    end
+    # db.vm.synced_folder ".", "/vagrant", owner: "vagrant", group: "vagrant", type: "virtualbox"
+    db.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--name", "db"]
+    end
+  end
+
+  config.vm.define "webapp" do |web|
+    web.vm.hostname = 'webapp'
+    web.vm.network :private_network, ip: "192.168.56.101"
+    # web.vm.synced_folder ".", "/vagrant", owner: "vagrant", group: "vagrant", type: "virtualbox"
+    web.vm.provision "ansible", playbook: "app_playbook.yml"
+    web.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--name", "webapp"]
+    end
+  end
+end

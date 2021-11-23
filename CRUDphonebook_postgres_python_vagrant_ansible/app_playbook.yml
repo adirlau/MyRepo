@@ -1,0 +1,41 @@
+---
+- name: deploy
+  hosts: all
+  gather_facts: false
+  become: true
+  become_method: sudo
+  tasks:
+    - name: create user
+      user:
+        name: test
+        state: present
+        shell: /bin/bash
+        password: "{{'Test123.' | password_hash('sha512')}}"
+        update_password: on_create
+
+    - name: add sshd password
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication '
+        insertafter: '#PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+      notify: restart_sshd
+
+    - name: make user a sudoer
+      copy:
+        dest: /etc/sudoers.d/test
+        content: "test ALL=(root) NOPASSWD: ALL"
+
+    - name: pip install requirements.txt file
+      pip: requirements=/vagrant/requirements.txt
+
+    # - name: run a python app
+    #   command: python3 crud_phonebook.py
+    #   args:
+    #     chdir: /vagrant
+
+  handlers:
+    - name: restart_sshd
+      service:
+        name: sshd
+        state: restarted
