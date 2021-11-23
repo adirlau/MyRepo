@@ -2,7 +2,7 @@
 
 Python app that performs updates on a postgresql table that can be customized in whatever you want, our example is a phonebook. 
 
-Vagrant file that creates two vm's provisioned with Ansible:
+Vagrantfile that creates two vm's provisioned with Ansible:
    - database(db)
       - Ansible files: 
          - db_playbook.yml 
