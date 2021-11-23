@@ -19,12 +19,13 @@ Vagrant file that creates two vm's provisioned with Ansible:
 
 How to run:
 
+'''
 git clone this repo
 cd repo/CRUDphonebook_postgres_python_vagrant_ansible
 vagrant up
 vagrant ssh web
 python3 /vagrant/crud_phonebook.py
-
+'''
 
 
 
