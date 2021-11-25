@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  db:
+    container_name: "postgres_container"
+    image: "postgres:14"
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./pgdata/:/var/lib/postgresql/data
+      - ./pgdata/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Test123.
+      - POSTGRES_DB=postgres
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    restart: always
+
+  web:
+    container_name: "myapp"
+    build: .
+    volumes:
+      - .:/myapp
+    ports:
+      - "127.0.0.1:8050:8050"
+    depends_on:
+      - db
+
+
+volumes:
+  pgdata:
+  .:
